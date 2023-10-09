@@ -1,0 +1,2 @@
+SPARQLWrapper
+mysql-connector-python
