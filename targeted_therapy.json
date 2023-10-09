@@ -1,0 +1,101 @@
+{
+   "process_id":"breast_cancer_transt_pert",
+   "data_source":"mysql",
+   "url":"192.168.1.50",
+   "port":30604,
+   "user":"abh95",
+   "password":"vasonegro29",
+   "database":"clarify_breast_20220917",
+   "population":"SELECT DISTINCT ehr FROM patient",
+   "tree":{
+      "name":"Transtuzumab OR (Pertuzumab AND Transtuzumab)",
+      "target":"SELECT DISTINCT ehr FROM drug_chemoterapy_schema dcs, drug d, chemoterapy_cycle cc WHERE dcs.id_drug=d.id_drug AND cc.id_schema=dcs.id_schema AND (d.name='TRASTUZUMAB' OR name='PERTUZUMAB')",
+      "validation":"SELECT DISTINCT ehr FROM drug_chemoterapy_schema dcs, drug d, chemoterapy_cycle cc WHERE dcs.id_drug=d.id_drug AND cc.id_schema=dcs.id_schema AND d.name='TRASTUZUMAB'",
+      "left":{
+         "name":"HER2+",
+         "target":"",
+         "validation":"SELECT DISTINCT ehr FROM patient WHERE her2_overall_positive=1",
+         "left":{
+            "name":"Surgery",
+            "target":"",
+            "validation":"SELECT DISTINCT ehr FROM surgery",
+            "left":{
+               "name":"Targeted before and after surgery",
+               "target":"",
+               "validation":"SELECT DISTINCT cc.ehr FROM drug_chemoterapy_schema dcs, drug d, chemoterapy_cycle cc, (SELECT ehr, MAX(date_year) last_surgery FROM surgery s GROUP BY ehr) l, (SELECT ehr, MIN(date_year) first_surgery FROM surgery s GROUP BY ehr) f WHERE dcs.id_drug=d.id_drug AND cc.id_schema=dcs.id_schema AND l.ehr=cc.ehr AND f.ehr=cc.ehr AND first_surgery<=YEAR(date) AND last_surgery>=YEAR(date)",
+               "left":{
+                  "name":"Is neoadjuvant",
+                  "target":"",
+                  "validation":"SELECT DISTINCT ehr FROM patient WHERE neoadjuvant='yes'",
+                  "left":{
+                     "name":"Stage I, II, or III",
+                     "target":"",
+                     "validation":"SELECT DISTINCT p.ehr FROM patient p, tumor_tnm t WHERE p.ehr=t.ehr AND (stage_diagnosis='IA' OR stage_diagnosis='IB' OR stage_diagnosis LIKE 'II%')",
+                     "left":{},
+                     "right":{}
+                  },
+                  "right":{}
+               },
+               "right":{}
+            },
+            "right":{
+               "name":"Is neoadjuvant (no surgery)",
+               "target":"",
+               "validation":"SELECT DISTINCT ehr FROM patient WHERE neoadjuvant='yes'",
+               "left":{
+                  "name":"Stage I, II, or III (no surgery)",
+                  "target":"",
+                  "validation":"SELECT DISTINCT p.ehr FROM patient p, tumor_tnm t WHERE p.ehr=t.ehr AND (stage_diagnosis='IA' OR stage_diagnosis='IB' OR stage_diagnosis LIKE 'II%')",
+                  "left":{},
+                  "right":{}
+               },
+               "right":{}
+            }
+         },
+         "right":{}
+      },
+      "right":{
+         "name":"HER2+ (no transt.)",
+         "target":"",
+         "validation":"SELECT DISTINCT ehr FROM patient WHERE her2_overall_positive=1",
+         "left":{
+            "name":"Surgery (no transt.)",
+            "target":"",
+            "validation":"SELECT DISTINCT ehr FROM surgery",
+            "left":{
+               "name":"Targeted before and after surgery (no transt.)",
+               "target":"",
+               "validation":"SELECT DISTINCT cc.ehr FROM drug_chemoterapy_schema dcs, drug d, chemoterapy_cycle cc, (SELECT ehr, MAX(date_year) last_surgery FROM surgery s GROUP BY ehr) l, (SELECT ehr, MIN(date_year) first_surgery FROM surgery s GROUP BY ehr) f WHERE dcs.id_drug=d.id_drug AND cc.id_schema=dcs.id_schema AND l.ehr=cc.ehr AND f.ehr=cc.ehr AND first_surgery<=YEAR(date) AND last_surgery>=YEAR(date)",
+               "left":{
+                  "name":"Is neoadjuvant (no transt.)",
+                  "target":"",
+                  "validation":"SELECT DISTINCT ehr FROM patient WHERE neoadjuvant='yes'",
+                  "left":{
+                     "name":"Stage I, II, or III (no transt.)",
+                     "target":"",
+                     "validation":"SELECT DISTINCT p.ehr FROM patient p, tumor_tnm t WHERE p.ehr=t.ehr AND (stage_diagnosis='IA' OR stage_diagnosis='IB' OR stage_diagnosis LIKE 'II%')",
+                     "left":{},
+                     "right":{}
+                  },
+                  "right":{}
+               },
+               "right":{}
+            },
+            "right":{
+               "name":"Is neoadjuvant (no surgery, no transt.)",
+               "target":"",
+               "validation":"SELECT DISTINCT ehr FROM patient WHERE neoadjuvant='yes'",
+               "left":{
+                  "name":"Stage I, II, or III (no surgery, no transt.)",
+                  "target":"",
+                  "validation":"SELECT DISTINCT p.ehr FROM patient p, tumor_tnm t WHERE p.ehr=t.ehr AND (stage_diagnosis='IA' OR stage_diagnosis='IB' OR stage_diagnosis LIKE 'II%')",
+                  "left":{},
+                  "right":{}
+               },
+               "right":{}
+            }
+         },
+         "right":{}
+      }
+    }
+}
