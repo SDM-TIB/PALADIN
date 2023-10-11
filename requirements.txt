@@ -1,2 +1,3 @@
 SPARQLWrapper
 mysql-connector-python
+pandas
