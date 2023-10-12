@@ -9,13 +9,56 @@ PALADIN Tree Validator
 import abc
 import argparse
 import json
+import os.path
 from enum import Enum
 from functools import partial
+from time import time
 
 import mysql.connector
 from SPARQLWrapper import SPARQLWrapper, JSON
 
+
+class Trace(object):
+
+    first: float = None
+    last: float = None
+
+    def __init__(self, test, approach):
+        self.test = test
+        self.approach = approach
+        self.answer = 0
+        if os.path.isfile('traces.csv'):
+            self.traces = open('traces.csv', 'a+', encoding='utf8')
+        else:
+            self.traces = open('traces.csv', 'w', encoding='utf8')
+            self.traces.write('test,approach,answer,time\n')
+        self.start = time()
+
+    def __del__(self):
+        self.traces.close()
+        if os.path.isfile('metrics.csv'):
+            metrics = open('metrics.csv', 'a+', encoding='utf8')
+        else:
+            metrics = open('metrics.csv', 'w', encoding='utf8')
+            metrics.write('test,approach,tfft,totaltime,comp\n')
+        metrics.write(self.test + ',' + self.approach + ',' + str(self.first) + ',' + str(self.last) + ',' + str(self.answer) + '\n')
+        metrics.close()
+
+    def register(self, n=1):
+        if n < 1:
+            return
+        reg_time = time() - self.start
+        if self.first is None:
+            self.first = reg_time
+        self.last = reg_time
+        while n > 0:
+            n -= 1
+            self.answer += 1
+            self.traces.write(self.test + ',' + self.approach + ',' + str(self.answer) + ',' + str(reg_time) + '\n')
+
+
 print_mode = True
+trace: Trace | None = None
 
 
 class DataSource(object):
@@ -74,12 +117,21 @@ class MySQL(DataSource):
     def close_connection(self):
         """Closes the MySQL connection."""
         self.connection['db_crs'].close()
+        self.connection['db_mngr'].close()
 
     def query(self, query: str) -> set:
         try:
             db_crs = self.connection['db_crs']
             db_crs.execute(query)
-            return set([x[0] for x in db_crs.fetchall()])
+            global trace
+            if trace is not None:
+                result = set()
+                for x in db_crs:
+                    trace.register()
+                    result.add(x[0])
+                return result
+            else:
+                return set([x[0] for x in db_crs.fetchall()])
         except mysql.connector.Error:
             print('Error in the SQL query')
         return set()
@@ -102,7 +154,17 @@ class SPARQLEndpoint(DataSource):
             self.connection.setQuery(query)
             result = self.connection.queryAndConvert()
             proj_var = result['head']['vars'][0]
-            return set([res[proj_var]['value'] for res in result['results']['bindings']])
+            global trace
+            if trace is not None:
+                data = set()
+
+                for res in result['results']['bindings']:
+                    trace.register()
+                    data.add(res[proj_var]['value'])
+
+                return data
+            else:
+                return set([res[proj_var]['value'] for res in result['results']['bindings']])
         except:
             print('Error in the SPARQL query')
         return set()
@@ -124,6 +186,9 @@ def traverse_tree_recursion(tree, population, data_source: DataSource):
         validated = data_source.query(tree['validation'])
         validated = validated.intersection(population)
         unvalidated = population - validated
+        global trace
+        if trace is not None:
+            trace.register(len(unvalidated))
         if print_mode:
             print('Validated: ' + str(len(validated)))
             print('Validation violated: ' + str(len(unvalidated)))
@@ -159,6 +224,9 @@ def traverse_tree_depth(tree, population, data_source: DataSource):
             validated = data_source.query(tree['validation'])
             validated = validated.intersection(population)
             unvalidated = population - validated
+            global trace
+            if trace is not None:
+                trace.register(len(unvalidated))
             if print_mode:
                 print('Validated: ' + str(validated))
                 print('Validation violated: ' + str(unvalidated))
@@ -200,6 +268,9 @@ def traverse_tree_width(tree, population, data_source: DataSource):
                 validated = data_source.query(tree['validation'])
                 validated = validated.intersection(population)
                 unvalidated = population - validated
+                global trace
+                if trace is not None:
+                    trace.register(len(unvalidated))
                 if print_mode:
                     print('Validated: ' + str(len(validated)))
                     print('Validation violated: ' + str(len(unvalidated)))
@@ -224,15 +295,18 @@ class TraversalStrategy(Enum):
         return self.value(tree, population, data_source)
 
 
-def paladin(tree_file, traversal_strategy):
+def paladin(tree_file, traversal_strategy, keep_traces: bool = False):
     """Performs the validation of the given PALADIN tree following the specified traversal strategy."""
     traversal_strategy = TraversalStrategy[traversal_strategy]
     with open(tree_file, 'r') as tf:
         data = json.load(tf)
     data_source = DataSource.get_data_source(data)
+    if keep_traces:
+        global trace
+        trace = Trace(data['process_id'], data['data_source'])
     population = data_source.query(data['population'])
     traversal_strategy.traverse(data['tree'], population, data_source)
-    del data_source
+    del data_source, trace
 
 
 if __name__ == '__main__':
@@ -240,6 +314,8 @@ if __name__ == '__main__':
     
     PALADIN requires two positional parameters. The first one is the path to the PALADIN tree file.
     The second parameter specifies the traversal strategy; one of BFS, DFS, REC.
+    When setting the ``--traces`` flag, PALADIN will keep traces during the validation which can
+    be used to compute the diefficiency. These traces are stored in ``./metrics.csv`` and ``./traces.csv``.
     
     """
     parser = argparse.ArgumentParser(description='PALADIN Validation')
@@ -247,6 +323,8 @@ if __name__ == '__main__':
                         help='Path to the PALADIN tree file to validate')
     parser.add_argument(dest='traversal', type=str, choices=['BFS', 'DFS', 'REC'],
                         help='Tree traversal strategy to follow during validation')
+    parser.add_argument('-t', '--traces', action='store_true', default=False, required=False,
+                        help='Indicates that PALADIN should keep traces during the validation.')
     args = parser.parse_args()
 
-    paladin(args.tree, args.traversal)
+    paladin(args.tree, args.traversal, args.traces)
