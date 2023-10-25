@@ -57,7 +57,7 @@ class Trace(object):
             self.traces.write(self.test + ',' + self.approach + ',' + str(self.answer) + ',' + str(reg_time) + '\n')
 
 
-print_mode = True
+print_mode = False
 trace: Trace | None = None
 
 
@@ -290,6 +290,9 @@ class TraversalStrategy(Enum):
     DFS = partial(traverse_tree_depth)
     REC = partial(traverse_tree_recursion)
 
+    def __str__(self):
+        return self.name
+
     def traverse(self, tree, population, data_source):
         """Calls the traversal function mapped to this instance of the enum."""
         return self.value(tree, population, data_source)
@@ -303,7 +306,7 @@ def paladin(tree_file, traversal_strategy, keep_traces: bool = False):
     data_source = DataSource.get_data_source(data)
     if keep_traces:
         global trace
-        trace = Trace(data['process_id'], data['data_source'])
+        trace = Trace(data['process_id'], str(traversal_strategy))
     population = data_source.query(data['population'])
     traversal_strategy.traverse(data['tree'], population, data_source)
     del data_source, trace
@@ -325,6 +328,9 @@ if __name__ == '__main__':
                         help='Tree traversal strategy to follow during validation')
     parser.add_argument('-t', '--traces', action='store_true', default=False, required=False,
                         help='Indicates that PALADIN should keep traces during the validation.')
+    parser.add_argument('-p', '--print', action='store_true', default=False, required=False,
+                        help='Turn on/off the printing of the results to the command-line')
     args = parser.parse_args()
+    print_mode = args.print
 
     paladin(args.tree, args.traversal, args.traces)
