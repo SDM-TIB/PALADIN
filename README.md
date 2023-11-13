@@ -13,9 +13,9 @@ PALADIN is _source-agnostic_, which means that data sources of different formats
 ## PALADIN Architecture
 
 <figure>
-  <img src="images/architecture.png" width="90%" alt="PALADIN Architecture">
+  <img src="images/architecture.png" alt="PALADIN Architecture">
   <figcaption><i>Fig. 1:</i> <b>PALADIN Architecture</b></figcaption>
-</figure>
+</figure><br><br>
 
 The PALADIN architecture (see Fig. 1) consists of two components, namely the _Schema Traversal Planner_ and the _Schema Traversal Engine_.
 The input is a PALADIN schema (the constraints) and the population (entities from a datasource) which is validated.
