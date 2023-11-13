@@ -85,7 +85,7 @@ __Metrics.__ The following metrics are reported:
 4. __dief@k__ Continuous efficiency while producing the first _k_ results [2].
 
 __Experimental Setup.__ The main PALADIN schema is evaluated with all four configurations over all 20 data sets.
-The three scalability schemas are evaluated with all PALADIN configurations over the data set _large mid_.
+The three scalability schemas are evaluated with all PALADIN configurations over the data set _Mid Large_.
 Together with the one case of using Trav-SHACL, this results in a total of 53 testbeds.
 Each testbed is executed 10 times.
 MySQL 8.1.0 and Virtuoso 7.20.3237 are used for hosting the RDB and KG data.
