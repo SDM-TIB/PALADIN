@@ -41,6 +41,8 @@ The output of the _shape traversal engine_ are the sets of valid and invalid ent
 
 > [!NOTE]
 > This is a brief summary of the experimental study presented in the paper.
+> Please, read the paper for a more elaborate result discussion.
+> The data and scripts can be found in [1]. The data is generated using [2].
 
 The experimental study aims at answering the following research questions:
 
@@ -54,6 +56,7 @@ The experimental study aims at answering the following research questions:
 __Data Sets.__ PALADIN is evaluated over 20 data sets.
 Two of these data sets contain real-world data about breast cancer treatments; one in a relational database and the other as an RDF-based knowledge graph.
 The remaining 18 data sets contain synthetic data based on the real-world breast cancer data.
+The synthetic data sets are published as [1] and are generated using [2].
 Again, half of the data sets are stored in a relational database while the other half is a corresponding RDF-based knowledge graph.
 The resulting nine different data sets differ in the size, i.e., number of patients modeled, and the truthfulness of the data.
 Synthetic data sets modeling 1000 (_small_), 10000 (_medium_), and 100000 (_big_) patients are used.
@@ -74,22 +77,22 @@ This results in four configurations:
 3. KG+BFS
 4. KG+DFS
 
-In the case of the real-world data, PALADIN is compared to Trav-SHACL [1], a state-of-the-art SHACL validator.
+In the case of the real-world data, PALADIN is compared to Trav-SHACL [3], a state-of-the-art SHACL validator.
 For the comparison with SHACL, 15 artificial classes representing the entities in all the shapes are added to the real-world KG.
 
 __Metrics.__ The following metrics are reported:
 
 1. __Average Validation Time:__ Average time in seconds that are needed to validate the PALADIN schema.
 2. __Standard Deviation of the Validation Time__: Standard deviation of the time required to validate the PALADIN schema. 
-3. __dief@t:__ Continuous efficiency in the first _t_ time units [2].
-4. __dief@k__ Continuous efficiency while producing the first _k_ results [2].
+3. __dief@t:__ Continuous efficiency in the first _t_ time units [4].
+4. __dief@k__ Continuous efficiency while producing the first _k_ results [4].
 
 __Experimental Setup.__ The main PALADIN schema is evaluated with all four configurations over all 20 data sets.
 The three scalability schemas are evaluated with all PALADIN configurations over the data set _Mid Large_.
 Together with the one case of using Trav-SHACL, this results in a total of 53 testbeds.
 Each testbed is executed 10 times.
 MySQL 8.1.0 and Virtuoso 7.20.3237 are used for hosting the RDB and KG data.
-The entire experimental environment is dockerized.
+The entire experimental environment is dockerized and available in [1].
 
 ### Results
 
@@ -150,8 +153,13 @@ Due to the nature of the constraint queries (range query over primary key), the 
 > [!NOTE]
 > This is a brief summary of the experimental study presented in the paper.
 > Please, read the paper for a more elaborate result discussion.
+> The data and scripts can be found in [1]. The data is generated using [2].
 
 ## References
-[1] Mónica Figuera, Philipp D. Rohde, Maria-Esther Vidal. Trav-SHACL: Efficiently Validating Networks of SHACL Constraints. In _Proceedings of the Web Conference 2021 (WWW '21), April 19-23, 2021, Ljubljana, Slovenia_. [DOI: 10.1145/3442381.3449877](https://doi.org/10.1145/3442381.3449877)
+[1] Philipp D. Rohde, Antonio Jesus Diaz-Honrubia, Emetis Niazmand, Maria-Esther Vidal. PALADIN: Benchmarks, Experimental Settings, and Evaluation. [DOI: 10.57702/kf5tc88r](https://doi.org/10.57702/kf5tc88r)
 
-[2] Maribel Acosta, Maria-Esther Vidal, York Sure-Vetter. Diefficiency Metrics: Measuring the Continuous Efficiency of Query Processing Approaches. In _Proceedings of the International Semantic Web Conference, 2017_. [DOI: 10.1007/978-3-319-68204-4_1](https://doi.org/10.1007/978-3-319-68204-4_1)
+[2] Antonio Jesus Diaz-Honrubia, Philipp D. Rohde. Synthetic Data Generator. [GitHub: SDM-TIB/Synthetic-Data-Generator](https://github.com/SDM-TIB/Synthetic-Data-Generator)
+
+[3] Mónica Figuera, Philipp D. Rohde, Maria-Esther Vidal. Trav-SHACL: Efficiently Validating Networks of SHACL Constraints. In _Proceedings of the Web Conference 2021 (WWW '21), April 19-23, 2021, Ljubljana, Slovenia_. [DOI: 10.1145/3442381.3449877](https://doi.org/10.1145/3442381.3449877)
+
+[4] Maribel Acosta, Maria-Esther Vidal, York Sure-Vetter. Diefficiency Metrics: Measuring the Continuous Efficiency of Query Processing Approaches. In _Proceedings of the International Semantic Web Conference, 2017_. [DOI: 10.1007/978-3-319-68204-4_1](https://doi.org/10.1007/978-3-319-68204-4_1)
