@@ -64,9 +64,9 @@ The data sets varying in the data quality are called _clean_, _mid_, and _dirty_
 
 __PALADIN Schemas.__ The performance of PALADIN is evaluated using a PALADIN schema representing the treatment guideline for breast cancer patients with an amplified HER2 gene.
 The schema contains 15 shapes and is imbalanced.
-For the scalability study, three different PALADIN schemas are evaluated.
+For the scalability study, seven different PALADIN schemas are evaluated.
 They all divide the population based on ranges over the ID and differ in the number of nodes in the schema.
-The evaluated schemas contain 64, 256, and 1024 nodes, respectively.
+The evaluated schemas contain 16, 32, 64, 128, 256, 512, and 1024 nodes, respectively.
 
 __Configurations.__ Two different data formats are considered in the experimental study: (i) relational database (RDB), and (ii) RDF-based knowledge graph (KG).
 Additionally, the traversal strategies BFS and DFS are evaluated.
@@ -77,15 +77,18 @@ This results in four configurations:
 3. KG+BFS
 4. KG+DFS
 
-In the case of the real-world data, PALADIN is compared to Trav-SHACL [3], a state-of-the-art SHACL validator.
-For the comparison with SHACL, 15 artificial classes representing the entities in all the shapes are added to the real-world KG.
+In the case of the real-world data, PALADIN is compared to Trav-SHACL [3], a state-of-the-art SHACL validator, as well as Shaclex [4] and PyShEx [5], two ShEx validators.
+For the comparison with SHACL and ShEx, 15 artificial classes representing the entities in all the shapes are added to the real-world KG.
+For constraints that compare the value of two different properties, the constraint satisfaction is materialized.
+This is due to the fact that such constraints cannot be expressed in ShEx.
+In the case of SHACL, a SPARQL-based constraint would be required.
 
 __Metrics.__ The following metrics are reported:
 
 1. __Average Validation Time:__ Average time in seconds that are needed to validate the PALADIN schema.
 2. __Standard Deviation of the Validation Time__: Standard deviation of the time required to validate the PALADIN schema. 
-3. __dief@t:__ Continuous efficiency in the first _t_ time units [4].
-4. __dief@k__ Continuous efficiency while producing the first _k_ results [4].
+3. __dief@t:__ Continuous efficiency in the first _t_ time units [6].
+4. __dief@k__ Continuous efficiency while producing the first _k_ results [6].
 
 __Experimental Setup.__ The main PALADIN schema is evaluated with all four configurations over all 20 data sets.
 The three scalability schemas are evaluated with all PALADIN configurations over the data set _Mid Large_.
@@ -109,30 +112,38 @@ The entire experimental environment is dockerized and available in [1].
 <figure>
   <img src="images/dieft_real.png" alt="dief@t for Real Data">
   <figcaption><i>Fig. 4:</i> <b>dief@t for Real Data</b></figcaption>
-</figure><br><br>
+</figure>
+<figure>
+  <img src="images/execution_times_comparison.png" alt="Comparison of PALADIN with SHACL and ShEx">
+  <figcaption><i>Fig. 5:</i> <b>EComparison of PALADIN with SHACL and ShEx over Real Data</b></figcaption>
+</figure>
+<br><br>
 
-Figs. 2-4 present the results over the real-world data.
-PALADIN is significantly faster than Trav-SHACL.
+Figs. 2-5 present the results over the real-world data.
 The KG configurations outperform the RDB configurations.
 There is no real difference in the execution time for the two traversal strategies.
 The continuous behavior shows that the RDB configurations generate the first result faster but are slower overall.
+PALADIN is significantly faster than the other approaches.
+Trav-SHACL is the second best engine.
+PyShEx and Shaclex (ShEx) have a similar performance.
+However, validating SHACL with Shaclex, i.e., Shaclex (SHACL), has the worst performance.
 
 #### Synthetic Data
 
 <figure>
   <img src="images/execution_times_synth.png" alt="Execution Time over Synthetic Data">
-  <figcaption><i>Fig. 5:</i> <b>Execution Time over Synthetic Data</b></figcaption>
+  <figcaption><i>Fig. 6:</i> <b>Execution Time over Synthetic Data</b></figcaption>
 </figure>
 <figure>
   <img src="images/dieft_synth.png" alt="dief@t for Synthetic Data">
-  <figcaption><i>Fig. 6:</i> <b>dief@t for Synthetic Data</b></figcaption>
+  <figcaption><i>Fig. 7:</i> <b>dief@t for Synthetic Data</b></figcaption>
 </figure>
 <figure>
   <img src="images/diefk_synth.png" alt="dief@k for Synthetic Data">
-  <figcaption><i>Fig. 7:</i> <b>dief@k for Synthetic Data</b></figcaption>
+  <figcaption><i>Fig. 8:</i> <b>dief@k for Synthetic Data</b></figcaption>
 </figure><br><br>
 
-Figs. 5-7 show the results of the evaluation of the synthetic data.
+Figs. 6-8 show the results of the evaluation of the synthetic data.
 The RDB configurations are faster for small data sets but starting from medium-sized data sets, the KG configurations perform better.
 Again, no significant difference in the overall execution time between the two traversal strategies can be observed.
 For the continuous behavior only the KG configurations are reported.
@@ -144,10 +155,10 @@ This is due to the imbalanced nature of the PALADIN schema as discussed above.
 
 <figure>
   <img src="images/execution_times_scale.png" alt="Execution Time Scalability Study">
-  <figcaption><i>Fig. 8:</i> <b>Execution Time Scalability Study</b></figcaption>
+  <figcaption><i>Fig. 9:</i> <b>Execution Time Scalability Study</b></figcaption>
 </figure><br><br>
 
-Fig. 8 shows that the execution time increases linear with the number of nodes in the PALADIN schema.
+Fig. 9 shows that the execution time increases linear with the number of nodes in the PALADIN schema, i.e., when the complexity of the queries is fixed.
 Due to the nature of the constraint queries (range query over primary key), the RDB configurations outperform the KG configurations.
 
 > [!NOTE]
@@ -162,4 +173,8 @@ Due to the nature of the constraint queries (range query over primary key), the 
 
 [3] Mónica Figuera, Philipp D. Rohde, Maria-Esther Vidal. Trav-SHACL: Efficiently Validating Networks of SHACL Constraints. In _Proceedings of the Web Conference 2021 (WWW '21), April 19-23, 2021, Ljubljana, Slovenia_. [DOI: 10.1145/3442381.3449877](https://doi.org/10.1145/3442381.3449877)
 
-[4] Maribel Acosta, Maria-Esther Vidal, York Sure-Vetter. Diefficiency Metrics: Measuring the Continuous Efficiency of Query Processing Approaches. In _Proceedings of the International Semantic Web Conference, 2017_. [DOI: 10.1007/978-3-319-68204-4_1](https://doi.org/10.1007/978-3-319-68204-4_1)
+[4] Jose Emilio Labra Gayo, Eric Prud'hommeaux, Bogdan Roman, Toni Cebrían, Andrew Berezovskyi. Shaclex v0.2.2. [GitHub: weso/shaclex](https://github.com/weso/shaclex)
+
+[5] Harold Solbrig, Alejandro González Hevia, Vincent Emonet, Egon Willighagen, Josh Moore, Andra Waagmeester, Ben McAlister. PyShEx v0.8.2. [GitHub: hsolbrig/PyShEx](https://github.com/hsolbrig/PyShEx)
+
+[6] Maribel Acosta, Maria-Esther Vidal, York Sure-Vetter. Diefficiency Metrics: Measuring the Continuous Efficiency of Query Processing Approaches. In _Proceedings of the International Semantic Web Conference, 2017_. [DOI: 10.1007/978-3-319-68204-4_1](https://doi.org/10.1007/978-3-319-68204-4_1)
